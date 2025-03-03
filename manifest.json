@@ -1,0 +1,13 @@
+{
+  "name": "Component Usage Tracker",
+  "id": "1477022570404747630",
+  "api": "1.0.0",
+  "main": "code.js",
+  "ui": "ui.html",
+  "editorType": ["figma"],
+  "networkAccess": {
+    "allowedDomains": ["http://localhost:3001", "https://api.figma.com"],
+    "reasoning": "Needed to communicate with backend server to check component usage across files"
+  },
+  "permissions": ["currentuser"]
+}

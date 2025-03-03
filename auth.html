@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        body {
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            padding: 20px;
+            color: #333;
+            margin: 0;
+        }
+        .container {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            max-width: 400px;
+            margin: 0 auto;
+        }
+        button {
+            background-color: #18A0FB;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            padding: 8px 16px;
+            cursor: pointer;
+            font-weight: 500;
+        }
+        button:hover {
+            background-color: #0D8EE0;
+        }
+        .info-box {
+            background-color: #F0F0F0;
+            padding: 16px;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h2>Authenticate with Figma</h2>
+
+    <div class="info-box">
+        <p>This plugin needs access to your Figma account to search for component usage across files.</p>
+        <p>You'll be redirected to Figma to authorize this plugin.</p>
+    </div>
+
+    <button id="auth-button">Authenticate with Figma</button>
+</div>
+
+<script>
+    // Your Figma Client ID
+    const CLIENT_ID = 'HtBJNgdK2wBWQS4UsWkfx9';
+    const REDIRECT_URI = 'http://localhost:3001/auth/callback'; // Match your server
+    const SCOPE = 'files:read';
+
+    document.getElementById('auth-button').onclick = () => {
+        // Generate a random state value for security
+        const state = Math.random().toString(36).substring(2, 15);
+
+        // Store state in localStorage to verify when we get the callback
+        localStorage.setItem('figma_auth_state', state);
+
+        // Construct the authorization URL
+        const authUrl = `https://www.figma.com/oauth?client_id=${CLIENT_ID}&redirect_uri=${encodeURIComponent(REDIRECT_URI)}&scope=${SCOPE}&state=${state}&response_type=code`;
+
+        // Open the authorization page
+        window.open(authUrl, '_blank');
+    };
+
+    // Listen for messages from the auth callback
+    window.addEventListener('message', (event) => {
+        // Check if this is a message from our auth callback page
+        if (event.data && event.data.token) {
+            // Send the token to the plugin
+            parent.postMessage({
+                pluginMessage: {
+                    type: 'store-token',
+                    token: event.data.token
+                }
+            }, '*');
+        }
+    });
+</script>
+</body>
+</html>

@@ -1,0 +1,630 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Component Usage Tracker</title>
+    <style>
+        body {
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            padding: 20px;
+            color: #333;
+            margin: 0;
+        }
+        .container {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+        button {
+            background-color: #18A0FB;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            padding: 8px 16px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: background-color 0.2s;
+        }
+        button:hover {
+            background-color: #0D8EE0;
+        }
+        button:disabled {
+            background-color: #CCCCCC;
+            cursor: not-allowed;
+        }
+        .secondary-button {
+            background-color: #EEEEEE;
+            color: #333;
+        }
+        .secondary-button:hover {
+            background-color: #DDDDDD;
+        }
+        #component-info {
+            font-size: 14px;
+            padding: 12px;
+            background-color: #F0F0F0;
+            border-radius: 6px;
+            display: none;
+        }
+        #user-info {
+            font-size: 12px;
+            color: #666;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid #EEEEEE;
+            margin-bottom: 8px;
+        }
+        #search-options {
+            display: none;
+            padding: 12px;
+            background-color: #F8F8F8;
+            border-radius: 6px;
+            margin-top: 8px;
+        }
+        .option-row {
+            display: flex;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+        .option-row label {
+            margin-left: 8px;
+            font-size: 14px;
+        }
+        .option-row select {
+            flex-grow: 1;
+            padding: 6px;
+            border-radius: 4px;
+            border: 1px solid #ddd;
+        }
+        .team-selection {
+            margin-bottom: 12px;
+        }
+        .team-selection select {
+            width: 100%;
+            padding: 8px;
+            border-radius: 4px;
+            border: 1px solid #ddd;
+            margin-top: 4px;
+        }
+        .btn-group {
+            display: flex;
+            gap: 8px;
+            margin-top: 8px;
+        }
+        #results-container {
+            display: none;
+            max-height: 300px;
+            overflow-y: auto;
+            border: 1px solid #EEEEEE;
+            border-radius: 6px;
+        }
+        .results-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 12px;
+        }
+        .results-count {
+            font-size: 12px;
+            color: #666;
+        }
+        .result-item {
+            padding: 12px;
+            border-bottom: 1px solid #E5E5E5;
+        }
+        .file-link {
+            color: #18A0FB;
+            text-decoration: none;
+            display: block;
+            margin-bottom: 4px;
+            font-weight: 500;
+        }
+        .file-link:hover {
+            text-decoration: underline;
+        }
+        .instance-count {
+            font-size: 12px;
+            color: #666;
+            display: flex;
+            align-items: center;
+        }
+        .instance-count svg {
+            margin-right: 4px;
+        }
+        .loading {
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 20px 0;
+        }
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #18A0FB;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            animation: spin 1s linear infinite;
+            margin-right: 8px;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .search-progress {
+            margin-top: 8px;
+            display: none;
+            font-size: 12px;
+            color: #666;
+        }
+        .progress-bar-container {
+            width: 100%;
+            height: 6px;
+            background-color: #EEEEEE;
+            border-radius: 3px;
+            margin-top: 4px;
+        }
+        .progress-bar {
+            height: 6px;
+            background-color: #18A0FB;
+            border-radius: 3px;
+            width: 0;
+        }
+        .stats {
+            display: flex;
+            gap: 12px;
+            margin-top: 12px;
+        }
+        .stat-box {
+            flex: 1;
+            background-color: #F8F8F8;
+            padding: 12px;
+            border-radius: 6px;
+            text-align: center;
+        }
+        .stat-value {
+            font-size: 24px;
+            font-weight: 500;
+            color: #18A0FB;
+        }
+        .stat-label {
+            font-size: 12px;
+            color: #666;
+            margin-top: 4px;
+        }
+        .no-results {
+            padding: 20px;
+            text-align: center;
+            color: #666;
+        }
+        .error-message {
+            color: #e74c3c;
+            font-size: 14px;
+            padding: 8px;
+            background-color: #fdecea;
+            border-radius: 4px;
+            margin-top: 8px;
+            display: none;
+        }
+        .history-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px;
+            border-bottom: 1px solid #EEEEEE;
+            cursor: pointer;
+        }
+        .history-item:hover {
+            background-color: #F5F5F5;
+        }
+        .history-name {
+            font-weight: 500;
+        }
+        .history-time {
+            font-size: 12px;
+            color: #666;
+        }
+        .tabs {
+            display: flex;
+            border-bottom: 1px solid #EEEEEE;
+            margin-bottom: 16px;
+        }
+        .tab {
+            padding: 8px 16px;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+        }
+        .tab.active {
+            border-bottom-color: #18A0FB;
+            font-weight: 500;
+        }
+        .instructions {
+            font-size: 14px;
+            color: #666;
+            line-height: 1.5;
+            margin-bottom: 16px;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div id="user-info">
+        <span>Component Usage Tracker</span>
+        <button id="logout-button" class="secondary-button" style="font-size: 12px; padding: 4px 8px;">Logout</button>
+    </div>
+
+    <div class="tabs">
+        <div class="tab active" data-tab="search">Search</div>
+        <div class="tab" data-tab="history">History</div>
+    </div>
+
+    <div id="search-tab">
+        <div class="instructions">
+            <p>Select a component in your Figma file to see where it's used across files in your team.</p>
+        </div>
+
+        <div class="error-message" id="error-box"></div>
+
+        <div id="component-info"></div>
+
+        <div id="search-options">
+            <h4 style="margin-top: 0; margin-bottom: 12px;">Search Options</h4>
+
+            <div class="team-selection">
+                <label for="team-selector">Team to search in:</label>
+                <select id="team-selector">
+                    <option value="942111258425873938" selected>Files Team</option>
+                </select>
+            </div>
+
+            <div class="option-row">
+                <input type="checkbox" id="current-project-only">
+                <label for="current-project-only">Search only in current project</label>
+            </div>
+
+            <div class="option-row">
+                <input type="checkbox" id="include-instances" checked>
+                <label for="include-instances">Include component instances</label>
+            </div>
+
+            <div class="option-row">
+                <label for="file-limit">Maximum files to search:</label>
+                <select id="file-limit">
+                    <option value="10" selected>10 files</option>
+                    <option value="20">20 files</option>
+                    <option value="50">50 files</option>
+                    <option value="100">100 files</option>
+                </select>
+            </div>
+
+            <div class="btn-group">
+                <button id="start-search">Find Usage</button>
+                <button id="clear-selection" class="secondary-button">Clear Selection</button>
+            </div>
+        </div>
+
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <span>Searching for component usage...</span>
+        </div>
+
+        <div class="search-progress" id="search-progress">
+            <div id="progress-message">Searching files...</div>
+            <div class="progress-bar-container">
+                <div class="progress-bar" id="progress-bar"></div>
+            </div>
+        </div>
+
+        <div id="results-container">
+            <div class="results-header">
+                <h3>Files using this component</h3>
+                <span class="results-count">Found in <span id="file-count">0</span> files</span>
+            </div>
+
+            <div id="results-list"></div>
+
+            <div class="stats" id="stats-container">
+                <div class="stat-box">
+                    <div class="stat-value" id="total-instances">0</div>
+                    <div class="stat-label">Total Instances</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-value" id="max-instances">0</div>
+                    <div class="stat-label">Max Per File</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="history-tab" style="display: none;">
+        <h3>Search History</h3>
+        <div id="history-list">
+            <div class="no-results">No search history yet</div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Tab switching
+    document.querySelectorAll('.tab').forEach(tab => {
+        tab.addEventListener('click', () => {
+            // Remove active class from all tabs
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+
+            // Add active class to clicked tab
+            tab.classList.add('active');
+
+            // Hide all tab content
+            document.getElementById('search-tab').style.display = 'none';
+            document.getElementById('history-tab').style.display = 'none';
+
+            // Show the selected tab content
+            const tabName = tab.getAttribute('data-tab');
+            if (tabName) {
+                document.getElementById(tabName + '-tab').style.display = 'block';
+
+                // If history tab is clicked, load search history
+                if (tabName === 'history') {
+                    loadSearchHistory();
+                }
+            }
+        });
+    });
+
+    // Load search history
+    function loadSearchHistory() {
+        parent.postMessage({ pluginMessage: { type: 'get-search-history' } }, '*');
+    }
+
+    // Handle the "Find Usage" button click
+    document.getElementById('start-search').addEventListener('click', () => {
+        const currentProjectOnly = document.getElementById('current-project-only').checked;
+        const includeInstances = document.getElementById('include-instances').checked;
+        const searchTeamId = document.getElementById('team-selector').value;
+        const fileLimit = document.getElementById('file-limit').value;
+
+        document.getElementById('loading').style.display = 'flex';
+        document.getElementById('results-container').style.display = 'none';
+        document.getElementById('search-progress').style.display = 'block';
+        document.getElementById('error-box').style.display = 'none';
+
+        // Reset progress bar
+        document.getElementById('progress-bar').style.width = '0';
+        document.getElementById('progress-message').textContent = 'Starting search...';
+
+        parent.postMessage({
+            pluginMessage: {
+                type: 'find-usage',
+                currentProjectOnly,
+                includeInstances,
+                searchTeamId,
+                componentTeamId: "1274370067380881284", // Team where components are stored
+                fileLimit
+            }
+        }, '*');
+    });
+
+    // Handle the "Clear Selection" button click
+    document.getElementById('clear-selection').addEventListener('click', () => {
+        document.getElementById('component-info').style.display = 'none';
+        document.getElementById('search-options').style.display = 'none';
+        document.getElementById('results-container').style.display = 'none';
+        document.getElementById('error-box').style.display = 'none';
+        document.getElementById('search-progress').style.display = 'none';
+
+        parent.postMessage({
+            pluginMessage: {
+                type: 'clear-selection'
+            }
+        }, '*');
+    });
+
+    // Handle the "Logout" button click
+    document.getElementById('logout-button').addEventListener('click', () => {
+        if (confirm('Are you sure you want to logout? You will need to re-authenticate with Figma.')) {
+            parent.postMessage({
+                pluginMessage: {
+                    type: 'logout'
+                }
+            }, '*');
+        }
+    });
+
+    // Format date for display
+    function formatDate(dateString) {
+        const date = new Date(dateString);
+        const now = new Date();
+        const diffMs = now - date;
+        const diffMins = Math.floor(diffMs / 60000);
+        const diffHours = Math.floor(diffMins / 60);
+        const diffDays = Math.floor(diffHours / 24);
+
+        if (diffMins < 1) {
+            return 'Just now';
+        } else if (diffMins < 60) {
+            return `${diffMins} minute${diffMins !== 1 ? 's' : ''} ago`;
+        } else if (diffHours < 24) {
+            return `${diffHours} hour${diffHours !== 1 ? 's' : ''} ago`;
+        } else if (diffDays < 7) {
+            return `${diffDays} day${diffDays !== 1 ? 's' : ''} ago`;
+        } else {
+            return date.toLocaleDateString();
+        }
+    }
+
+    // Listen for messages from the plugin code
+    window.onmessage = (event) => {
+        if (!event.data.pluginMessage) return;
+
+        const message = event.data.pluginMessage;
+
+        if (message.type === 'component-selected') {
+            // Display the selected component info
+            const componentInfo = document.getElementById('component-info');
+            componentInfo.innerHTML = `
+                <strong>Selected Component:</strong> ${message.name}<br>
+                <span style="font-size: 12px; color: #666;">ID: ${message.id}</span>
+            `;
+            componentInfo.style.display = 'block';
+
+            // Show the search options
+            document.getElementById('search-options').style.display = 'block';
+
+            // Hide any previous error
+            document.getElementById('error-box').style.display = 'none';
+        }
+
+        if (message.type === 'search-history') {
+            const historyList = document.getElementById('history-list');
+
+            // Clear previous history
+            historyList.innerHTML = '';
+
+            if (message.history && message.history.length > 0) {
+                // Add each history item
+                message.history.forEach(item => {
+                    const historyItem = document.createElement('div');
+                    historyItem.className = 'history-item';
+                    const itemName = item.name || 'Unnamed Component';
+                    const itemTimestamp = item.timestamp || new Date().toISOString();
+
+                    historyItem.innerHTML = `
+                        <div class="history-name">${itemName}</div>
+                        <div class="history-time">${formatDate(itemTimestamp)}</div>
+                    `;
+
+                    // Add click event to use this component
+                    historyItem.addEventListener('click', () => {
+                        // Switch to search tab
+                        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                        const searchTab = document.querySelector('[data-tab="search"]');
+                        if (searchTab) searchTab.classList.add('active');
+                        document.getElementById('search-tab').style.display = 'block';
+                        document.getElementById('history-tab').style.display = 'none';
+
+                        // Load component info
+                        const componentInfo = document.getElementById('component-info');
+                        componentInfo.innerHTML = `
+                            <strong>Selected Component:</strong> ${itemName}<br>
+                            <span style="font-size: 12px; color: #666;">ID: ${item.id || ''}</span>
+                        `;
+                        componentInfo.style.display = 'block';
+
+                        // Show the search options
+                        document.getElementById('search-options').style.display = 'block';
+                    });
+
+                    historyList.appendChild(historyItem);
+                });
+            } else {
+                historyList.innerHTML = '<div class="no-results">No search history yet</div>';
+            }
+        }
+
+        if (message.type === 'search-progress') {
+            // Update progress bar
+            const progressBar = document.getElementById('progress-bar');
+            const percentage = message.percentage || 0;
+            progressBar.style.width = percentage + '%';
+
+            // Update progress message if provided
+            const progressMessage = document.getElementById('progress-message');
+            if (message.message && progressMessage) {
+                progressMessage.textContent = message.message;
+            }
+        }
+
+        if (message.type === 'search-results') {
+            // Hide the loading indicator and progress
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('search-progress').style.display = 'none';
+
+            // Get the results container and list
+            const resultsContainer = document.getElementById('results-container');
+            const resultsList = document.getElementById('results-list');
+
+            // Clear previous results
+            resultsList.innerHTML = '';
+
+            // Handle case where results might be undefined
+            const results = message.results || [];
+
+            // Update file count
+            const fileCountElement = document.getElementById('file-count');
+            if (fileCountElement) {
+                fileCountElement.textContent = results.length;
+            }
+
+            if (results.length === 0) {
+                // No results found
+                resultsList.innerHTML = '<div class="no-results">No files found using this component.</div>';
+                const statsContainer = document.getElementById('stats-container');
+                if (statsContainer) {
+                    statsContainer.style.display = 'none';
+                }
+            } else {
+                // Add each result to the list
+                let totalInstances = 0;
+                let maxInstances = 0;
+
+                results.forEach(file => {
+                    const item = document.createElement('div');
+                    item.className = 'result-item';
+
+                    // Access instanceCount safely
+                    const count = file.instanceCount || 0;
+                    totalInstances += count;
+                    maxInstances = Math.max(maxInstances, count);
+
+                    const fileName = file.name || 'Untitled File';
+                    const fileUrl = file.url || '#';
+
+                    item.innerHTML = `
+                        <a href="${fileUrl}" class="file-link" target="_blank">${fileName}</a>
+                        <div class="instance-count">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M8 2H16C18.2091 2 20 3.79086 20 6V18C20 20.2091 18.2091 22 16 22H8C5.79086 22 4 20.2091 4 18V6C4 3.79086 5.79086 2 8 2Z" stroke="#666666" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                <path d="M10 6H14" stroke="#666666" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                <path d="M12 18V10" stroke="#666666" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                <path d="M9 13L12 10L15 13" stroke="#666666" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                            ${count} instance${count !== 1 ? 's' : ''}
+                        </div>
+                    `;
+
+                    resultsList.appendChild(item);
+                });
+
+                // Update stats
+                const totalInstancesElement = document.getElementById('total-instances');
+                const maxInstancesElement = document.getElementById('max-instances');
+                const statsContainer = document.getElementById('stats-container');
+
+                if (totalInstancesElement) totalInstancesElement.textContent = totalInstances;
+                if (maxInstancesElement) maxInstancesElement.textContent = maxInstances;
+                if (statsContainer) statsContainer.style.display = 'flex';
+            }
+
+            // Show the results container
+            if (resultsContainer) resultsContainer.style.display = 'block';
+        }
+
+        if (message.type === 'error') {
+            // Hide the loading indicator and progress
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('search-progress').style.display = 'none';
+
+            // Show the error message
+            const errorBox = document.getElementById('error-box');
+            if (errorBox) {
+                errorBox.textContent = message.message || 'An error occurred';
+                errorBox.style.display = 'block';
+            }
+        }
+    };
+
+    // Load search history when plugin starts
+    setTimeout(loadSearchHistory, 500);
+</script>
+</body>
+</html>
